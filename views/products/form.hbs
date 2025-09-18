@@ -1,0 +1,552 @@
+{{#section 'style'}}
+<style>
+  .form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+  .form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: all 0.3s;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.1);
+  }
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+  }
+  .input-with-icon {
+    padding-left: 40px;
+  }
+</style>
+{{/section}}
+
+<div class="page-header mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="mb-0">{{#if isEdit}}Edit Product{{else}}Add New Product{{/if}}</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/products">Products</a></li>
+          <li class="breadcrumb-item active">{{#if isEdit}}Edit{{else}}Add{{/if}}</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="{{#if isEdit}}/products/{{product._id}}{{else}}/products{{/if}}">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="form-section">
+        <h5 class="section-title"><i class="bi bi-box me-2"></i> Product Information</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Serial Number <span class="text-danger">*</span></label>
+            <div class="position-relative">
+              <i class="bi bi-upc-scan input-icon"></i>
+              {{#if isEdit}}
+                <input required type="text" class="form-control input-with-icon" name="serialNumber" id="serialNumber" value="{{product.serialNumber}}" placeholder="Enter unique serial number" />
+              {{else}}
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted" style="font-family: monospace; font-weight: 600;">ORZ20250912</span>
+                  <input required type="text" class="form-control" name="serialPostfix" id="serialPostfix" placeholder="Enter postfix (e.g., 00094)" maxlength="10" pattern="[0-9]{5,10}" title="Enter 5-10 digits" />
+                  <input type="hidden" name="serialNumber" id="serialNumber" />
+                </div>
+              {{/if}}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Capacity <span class="text-danger">*</span></label>
+            <select required class="form-select" name="typeCapacity" id="typeCapacity">
+              <option value="">Select capacity</option>
+              {{#each capacities}}
+                <option value="{{this}}" {{#if (eq ../product.typeCapacity this)}}selected{{/if}}>{{this}} GB</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Product Name <span class="text-danger">*</span></label>
+            <div class="position-relative">
+              <i class="bi bi-tag input-icon"></i>
+              <input required type="text" class="form-control input-with-icon" name="name" id="productName" value="{{product.name}}" placeholder="Auto-generated from serial + capacity" {{#unless isEdit}}readonly style="background-color: #f8f9fa;"{{/unless}} />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Product Type</label>
+            <div class="position-relative">
+              <i class="bi bi-hdd input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="productType" value="{{product.productType}}" readonly style="background-color: #f8f9fa;" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Platform <small class="text-muted">(Optional - filled when warranty registered)</small></label>
+            <select class="form-select" name="platform">
+              <option value="">Not specified</option>
+              {{#each platforms}}
+                <option value="{{this}}" {{#if (eq ../product.platform this)}}selected{{/if}}>{{capitalize this}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="Enter product description">{{product.description}}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Add Date</label>
+            <input type="date" class="form-control" name="addDate" id="addDate" value="{{formatDate product.addDate}}" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Sold Date</label>
+            <input type="date" class="form-control" name="soldDate" value="{{formatDate product.soldDate}}" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h5 class="section-title"><i class="bi bi-person me-2"></i> Buyer Information</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Buyer Name</label>
+            <div class="position-relative">
+              <i class="bi bi-person input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="buyerName" value="{{product.buyer.name}}" placeholder="Enter buyer name" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Buyer Phone</label>
+            <div class="position-relative">
+              <i class="bi bi-telephone input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="buyerPhone" value="{{product.buyer.phone}}" placeholder="Enter phone number" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Buyer Email</label>
+            <div class="position-relative">
+              <i class="bi bi-envelope input-icon"></i>
+              <input type="email" class="form-control input-with-icon" name="buyerEmail" value="{{product.buyer.email}}" placeholder="Enter email address" />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Payment Method</label>
+            <div class="position-relative">
+              <i class="bi bi-credit-card input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="buyerPaymentMethod" value="{{product.buyer.paymentMethod}}" placeholder="Cash, Card, Transfer, etc." />
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Buyer Address</label>
+            <div class="position-relative">
+              <i class="bi bi-geo-alt input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="buyerAddress" value="{{product.buyer.address}}" placeholder="Enter complete address" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="form-section">
+        <h5 class="section-title"><i class="bi bi-info-circle me-2"></i> Actions</h5>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" type="submit" id="submitBtn">
+            <span class="btn-text">
+              <i class="bi bi-check2-circle me-2"></i>
+              {{#if isEdit}}Update Product{{else}}Create Product{{/if}}
+            </span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Processing...
+            </span>
+          </button>
+          <a class="btn btn-outline-secondary" href="/products">
+            <i class="bi bi-x-circle me-2"></i> Cancel
+          </a>
+        </div>
+        
+        {{#if isEdit}}
+          <hr class="my-3">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <small>Product ID: <strong>{{product._id}}</strong></small>
+          </div>
+        {{/if}}
+      </div>
+
+      <div class="form-section">
+        <h5 class="section-title"><i class="bi bi-question-circle me-2"></i> Tips</h5>
+        <ul class="small text-muted">
+          {{#unless isEdit}}
+          <li>Enter only the postfix (5-10 digits) for serial number</li>
+          <li>Full serial: ORZ20250912 + your postfix</li>
+          <li>Product name auto-generates from serial + capacity</li>
+          <li>Add date defaults to today</li>
+          {{else}}
+          <li>Serial number must be unique</li>
+          {{/unless}}
+          <li>Fill buyer information when product is sold</li>
+          <li>Platform gets filled during warranty registration</li>
+          <li>All changes are logged in Excel</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</form>
+
+{{#section 'script'}}
+<script>
+// Loading overlay HTML
+const loadingOverlay = `
+  <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center" style="background: rgba(0,0,0,0.5); z-index: 9999; display: none !important;">
+    <div class="text-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div class="text-white mt-3 fw-bold">Processing...</div>
+    </div>
+  </div>
+`;
+
+// Add loading overlay to body
+document.body.insertAdjacentHTML('beforeend', loadingOverlay);
+
+// Ensure loading overlay is hidden on page load
+document.addEventListener('DOMContentLoaded', function() {
+  hideLoading();
+});
+
+// Also hide it immediately in case DOM is already loaded
+hideLoading();
+
+// Set default add date to today for new products
+{{#unless isEdit}}
+const addDateField = document.getElementById('addDate');
+if (addDateField && !addDateField.value) {
+  const today = new Date();
+  const todayString = today.getFullYear() + '-' + 
+    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(today.getDate()).padStart(2, '0');
+  addDateField.value = todayString;
+}
+
+// Initialize serial postfix field for new products
+const serialPostfixField = document.getElementById('serialPostfix');
+if (serialPostfixField) {
+  // Add real-time formatting - only allow digits
+  serialPostfixField.addEventListener('input', function(e) {
+    // Remove any non-digit characters
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // Limit to 10 characters
+    if (this.value.length > 10) {
+      this.value = this.value.substring(0, 10);
+    }
+  });
+}
+{{/unless}}
+
+// Serial number prefix constant
+const SERIAL_PREFIX = 'ORZ20250912';
+
+// Update serial number from postfix input
+function updateSerialNumber() {
+  {{#unless isEdit}}
+  const postfix = document.getElementById('serialPostfix').value.trim();
+  const fullSerial = postfix ? SERIAL_PREFIX + postfix : '';
+  document.getElementById('serialNumber').value = fullSerial;
+  {{/unless}}
+}
+
+// Auto-generate product name based on serial number and capacity
+function generateProductName() {
+  let serialNumber;
+  
+  {{#if isEdit}}
+  serialNumber = document.getElementById('serialNumber').value.trim();
+  {{else}}
+  const postfix = document.getElementById('serialPostfix').value.trim();
+  serialNumber = postfix ? SERIAL_PREFIX + postfix : '';
+  // Update hidden field
+  document.getElementById('serialNumber').value = serialNumber;
+  {{/if}}
+  
+  const capacity = document.getElementById('typeCapacity').value;
+  const productNameField = document.getElementById('productName');
+  
+  if (serialNumber && capacity && !{{isEdit}}) {
+    // Generate name format: "Storage Disk {capacity}GB - {serialNumber}"
+    const productName = `Storage Disk ${capacity}GB - ${serialNumber}`;
+    productNameField.value = productName;
+  } else if (!serialNumber || !capacity) {
+    // Clear the name if either field is empty (for new products only)
+    if (!{{isEdit}}) {
+      productNameField.value = '';
+    }
+  }
+}
+
+// Add event listeners for auto-generation
+{{#unless isEdit}}
+document.getElementById('serialPostfix').addEventListener('input', function() {
+  updateSerialNumber();
+  generateProductName();
+});
+document.getElementById('typeCapacity').addEventListener('change', generateProductName);
+{{else}}
+document.getElementById('serialNumber').addEventListener('input', generateProductName);
+document.getElementById('typeCapacity').addEventListener('change', generateProductName);
+{{/unless}}
+
+// Show/hide loading functions
+function showLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.classList.add('d-flex');
+  }
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.classList.remove('d-flex');
+  }
+}
+
+// Form validation
+const productForm = document.querySelector('form');
+
+if (productForm) {
+  productForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Reset previous validation states
+    document.querySelectorAll('.is-invalid').forEach(el => {
+      el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('.invalid-feedback').forEach(el => {
+      el.remove();
+    });
+    
+    let isValid = true;
+    const errors = [];
+    
+    // Validate Serial Number
+    {{#if isEdit}}
+    const serialNumber = document.querySelector('input[name="serialNumber"]');
+    if (!serialNumber.value.trim()) {
+      showError(serialNumber, 'Serial number is required');
+      errors.push('Serial number is required');
+      isValid = false;
+    } else if (serialNumber.value.trim().length < 3) {
+      showError(serialNumber, 'Serial number must be at least 3 characters');
+      errors.push('Serial number must be at least 3 characters');
+      isValid = false;
+    }
+    {{else}}
+    const serialPostfix = document.querySelector('input[name="serialPostfix"]');
+    if (!serialPostfix.value.trim()) {
+      showError(serialPostfix, 'Serial postfix is required');
+      errors.push('Serial postfix is required');
+      isValid = false;
+    } else if (serialPostfix.value.trim().length < 5) {
+      showError(serialPostfix, 'Serial postfix must be at least 5 digits');
+      errors.push('Serial postfix must be at least 5 digits');
+      isValid = false;
+    } else if (!/^[0-9]+$/.test(serialPostfix.value.trim())) {
+      showError(serialPostfix, 'Serial postfix must contain only digits');
+      errors.push('Serial postfix must contain only digits');
+      isValid = false;
+    } else {
+      // Update the hidden serial number field before submission
+      updateSerialNumber();
+    }
+    {{/if}}
+    
+    // Validate Product Name
+    const productName = document.querySelector('input[name="name"]');
+    if (!productName.value.trim()) {
+      showError(productName, 'Product name is required');
+      errors.push('Product name is required');
+      isValid = false;
+    } else if (productName.value.trim().length < 2) {
+      showError(productName, 'Product name must be at least 2 characters');
+      errors.push('Product name must be at least 2 characters');
+      isValid = false;
+    }
+    
+    // Validate Type Capacity
+    const typeCapacity = document.querySelector('select[name="typeCapacity"]');
+    if (!typeCapacity.value) {
+      showError(typeCapacity, 'Please select a capacity');
+      errors.push('Capacity selection is required');
+      isValid = false;
+    }
+    
+    // Validate Buyer Email if provided
+    const buyerEmail = document.querySelector('input[name="buyerEmail"]');
+    if (buyerEmail.value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(buyerEmail.value.trim())) {
+        showError(buyerEmail, 'Please enter a valid email address');
+        errors.push('Invalid email address format');
+        isValid = false;
+      }
+    }
+    
+    // Validate Buyer Phone if provided
+    const buyerPhone = document.querySelector('input[name="buyerPhone"]');
+    if (buyerPhone.value.trim()) {
+      const phoneRegex = /^[0-9\s\-\+\(\)]+$/;
+      if (!phoneRegex.test(buyerPhone.value.trim())) {
+        showError(buyerPhone, 'Please enter a valid phone number');
+        errors.push('Invalid phone number format');
+        isValid = false;
+      }
+    }
+    
+    // Validate dates
+    const addDate = document.querySelector('input[name="addDate"]');
+    const soldDate = document.querySelector('input[name="soldDate"]');
+    
+    if (addDate.value && soldDate.value) {
+      const add = new Date(addDate.value);
+      const sold = new Date(soldDate.value);
+      
+      if (sold < add) {
+        showError(soldDate, 'Sold date cannot be before add date');
+        errors.push('Sold date must be after add date');
+        isValid = false;
+      }
+    }
+    
+    // Validate buyer details if sold date is provided
+    if (soldDate.value) {
+      const buyerName = document.querySelector('input[name="buyerName"]');
+      if (!buyerName.value.trim()) {
+        showError(buyerName, 'Buyer name is required when product is sold');
+        errors.push('Buyer name is required for sold products');
+        isValid = false;
+      }
+    }
+    
+    if (!isValid) {
+      // Show error toast
+      showErrorToast(errors[0]);
+      
+      // Scroll to first error
+      const firstError = document.querySelector('.is-invalid');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus();
+      }
+      return false;
+    }
+    
+    // If validation passes, show loading and submit
+    showLoading();
+    
+    // Update button state
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.querySelector('.btn-text').style.display = 'none';
+      submitBtn.querySelector('.btn-loading').style.display = 'inline-block';
+    }
+    
+    // Submit the form
+    setTimeout(() => {
+      productForm.submit();
+    }, 100);
+  });
+}
+
+// Helper function to show field error
+function showError(field, message) {
+  field.classList.add('is-invalid');
+  const feedback = document.createElement('div');
+  feedback.className = 'invalid-feedback';
+  feedback.textContent = message;
+  
+  // Insert feedback after the field or its parent group
+  const parent = field.closest('.position-relative') || field.parentElement;
+  parent.appendChild(feedback);
+}
+
+// Helper function to show error toast
+function showErrorToast(message) {
+  const toastHtml = `
+    <div class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', toastHtml);
+  const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
+  toast.show();
+  
+  // Remove toast after it hides
+  setTimeout(() => {
+    document.querySelector('.toast:last-child')?.remove();
+  }, 5000);
+}
+
+// Real-time validation
+document.querySelectorAll('input[required], select[required]').forEach(field => {
+  field.addEventListener('blur', function() {
+    if (!this.value.trim()) {
+      this.classList.add('is-invalid');
+    } else {
+      this.classList.remove('is-invalid');
+    }
+  });
+  
+  field.addEventListener('input', function() {
+    if (this.classList.contains('is-invalid') && this.value.trim()) {
+      this.classList.remove('is-invalid');
+    }
+  });
+});
+
+// Email validation on blur
+const emailField = document.querySelector('input[name="buyerEmail"]');
+if (emailField) {
+  emailField.addEventListener('blur', function() {
+    if (this.value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.value.trim())) {
+        showError(this, 'Please enter a valid email address');
+      }
+    }
+  });
+}
+</script>
+{{/section}}

@@ -1,0 +1,54 @@
+{{#section 'style'}}
+<style>
+  body {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .error-container {
+    text-align: center;
+    color: white;
+  }
+  .error-code {
+    font-size: 8rem;
+    font-weight: bold;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    background: linear-gradient(45deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .error-message {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+  }
+  .btn-home {
+    background: white;
+    color: #e74c3c;
+    padding: 12px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+  .btn-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    color: #c0392b;
+  }
+</style>
+{{/section}}
+
+<div class="error-container">
+  <div class="error-code">500</div>
+  <h2 class="error-message">Internal Server Error</h2>
+  <p class="mb-4">Something went wrong. Our team has been notified.</p>
+  <a href="/" class="btn-home">
+    <i class="bi bi-house-door me-2"></i> Back to Home
+  </a>
+</div>

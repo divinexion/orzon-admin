@@ -1,0 +1,314 @@
+{{#section 'style'}}
+<style>
+  .request-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 4px solid #ffc107;
+  }
+  .request-card.approved {
+    border-left-color: #28a745;
+  }
+  .request-card.rejected {
+    border-left-color: #dc3545;
+  }
+  .status-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+  .status-approved {
+    background: #d4edda;
+    color: #155724;
+  }
+  .status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  .detail-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .detail-table td:first-child {
+    font-weight: 600;
+    color: #6c757d;
+    width: 150px;
+  }
+</style>
+{{/section}}
+
+<div class="page-header mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="mb-0">Warranty Requests</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/products">Products</a></li>
+          <li class="breadcrumb-item active">Warranty Requests</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <span class="badge bg-warning text-dark fs-6">
+        <i class="bi bi-clock-history me-1"></i>
+        {{pendingCount}} Pending
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {{#unless status}}active{{/unless}}" href="/products/warranty-requests">
+      All Requests
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{#if (eq status 'pending')}}active{{/if}}" href="/products/warranty-requests?status=pending">
+      <span class="badge bg-warning text-dark me-1">{{pendingCount}}</span> Pending
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{#if (eq status 'active')}}active{{/if}}" href="/products/warranty-requests?status=active">
+      Approved
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{#if (eq status 'void')}}active{{/if}}" href="/products/warranty-requests?status=void">
+      Rejected
+    </a>
+  </li>
+</ul>
+
+{{#if requests.length}}
+  {{#each requests}}
+    <div class="request-card {{#if (eq warranty.status 'active')}}approved{{/if}} {{#if (eq warranty.status 'void')}}rejected{{/if}}">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="mb-1">{{name}}</h5>
+              <p class="mb-0 text-muted">Serial: <span class="font-monospace">{{serialNumber}}</span></p>
+            </div>
+            <span class="status-badge status-{{warranty.status}}">
+              {{#if (eq warranty.status 'pending')}}Pending Review
+              {{else if (eq warranty.status 'active')}}Approved
+              {{else if (eq warranty.status 'void')}}Rejected
+              {{else}}{{warranty.status}}
+              {{/if}}
+            </span>
+          </div>
+          
+          <table class="detail-table w-100">
+            <tr>
+              <td>Product Type:</td>
+              <td>{{productType}} - {{typeCapacity}} GB</td>
+            </tr>
+            <tr>
+              <td>Customer:</td>
+              <td>
+                {{#if buyer.name}}{{buyer.name}}{{else}}Not provided{{/if}}
+                {{#if buyer.email}}<br><small class="text-muted">{{buyer.email}}</small>{{/if}}
+                {{#if buyer.phone}}<br><small class="text-muted">{{buyer.phone}}</small>{{/if}}
+              </td>
+            </tr>
+            <tr>
+              <td>Request Date:</td>
+              <td>{{formatDateTime warranty.registrationDate}}</td>
+            </tr>
+            <tr>
+              <td>Duration:</td>
+              <td>{{warranty.durationMonths}} months</td>
+            </tr>
+            <tr>
+              <td>Expiry Date:</td>
+              <td>{{formatDate warranty.expiryDate}}</td>
+            </tr>
+            {{#if warranty.notes}}
+            <tr>
+              <td>Notes:</td>
+              <td>{{warranty.notes}}</td>
+            </tr>
+            {{/if}}
+          </table>
+        </div>
+        
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title">Warranty Bill</h6>
+              {{#if warranty.billFile}}
+                <a href="/products/{{_id}}/warranty/bill" target="_blank" class="btn btn-sm btn-outline-primary mb-3 w-100">
+                  <i class="bi bi-file-earmark-pdf me-1"></i> View Bill Document
+                </a>
+              {{else}}
+                <p class="text-muted small">No bill uploaded</p>
+              {{/if}}
+              
+              {{#if (eq warranty.status 'pending')}}
+                <div class="d-grid gap-2">
+                  <button class="btn btn-success" onclick="approveWarranty('{{_id}}')">
+                    <i class="bi bi-check-circle me-1"></i> Approve Warranty
+                  </button>
+                  <button class="btn btn-danger" onclick="showRejectModal('{{_id}}')">
+                    <i class="bi bi-x-circle me-1"></i> Reject Request
+                  </button>
+                  <a href="/products/{{_id}}" class="btn btn-outline-secondary">
+                    <i class="bi bi-eye me-1"></i> View Product
+                  </a>
+                </div>
+              {{else}}
+                <div class="alert alert-info mb-2">
+                  <small>
+                    <strong>Processed by:</strong> {{warranty.lastModifiedBy}}<br>
+                    <strong>Date:</strong> {{formatDateTime warranty.lastModifiedAt}}
+                  </small>
+                </div>
+                <a href="/products/{{_id}}" class="btn btn-outline-primary w-100">
+                  <i class="bi bi-eye me-1"></i> View Product Details
+                </a>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/each}}
+{{else}}
+  <div class="text-center py-5">
+    <i class="bi bi-inbox fs-1 text-muted"></i>
+    <p class="mt-3 text-muted">No warranty requests found</p>
+  </div>
+{{/if}}
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reject Warranty Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rejectProductId">
+        <div class="mb-3">
+          <label class="form-label">Rejection Reason</label>
+          <textarea class="form-control" id="rejectionReason" rows="3" placeholder="Enter reason for rejection (optional)"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="rejectWarranty()">
+          <i class="bi bi-x-circle me-1"></i> Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+async function approveWarranty(productId) {
+  if (!confirm('Are you sure you want to approve this warranty request?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/products/${productId}/warranty/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ 
+        status: 'active',
+        notes: 'Approved from warranty requests page'
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showToast('success', result.message || 'Warranty approved successfully');
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast('error', result.message || 'Failed to approve warranty');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'An error occurred while processing request');
+  }
+}
+
+function showRejectModal(productId) {
+  document.getElementById('rejectProductId').value = productId;
+  document.getElementById('rejectionReason').value = '';
+  const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+  modal.show();
+}
+
+async function rejectWarranty() {
+  const productId = document.getElementById('rejectProductId').value;
+  const reason = document.getElementById('rejectionReason').value;
+  
+  if (!productId) return;
+  
+  try {
+    const response = await fetch(`/products/${productId}/warranty/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ 
+        status: 'void',
+        notes: reason ? `Rejected: ${reason}` : 'Rejected from warranty requests page'
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+      showToast('success', result.message || 'Warranty request rejected');
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast('error', result.message || 'Failed to reject warranty');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'An error occurred while processing request');
+  }
+}
+
+function showToast(type, message) {
+  const toastHtml = `
+    <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', toastHtml);
+  const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
+  toast.show();
+  
+  setTimeout(() => {
+    document.querySelector('.toast:last-child')?.remove();
+  }, 5000);
+}
+</script>
+{{/section}}

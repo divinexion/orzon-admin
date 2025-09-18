@@ -1,0 +1,95 @@
+<aside class="sidebar position-fixed top-0 start-0 h-100 bg-white shadow"
+  style="width: var(--sidebar-width); z-index: 1001; transition: all 0.3s;">
+  <div class="sidebar-header d-flex align-items-center justify-content-center py-4 border-bottom">
+    <div class="brand d-flex align-items-center">
+      <div>
+        <h4 class="mb-0 fw-bold" style="
+    font-size: 32px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+  ">
+          ORZON
+        </h4>
+
+
+
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-menu p-3">
+    <div class="menu-section mb-4">
+      <small class="text-muted text-uppercase fw-bold d-block mb-2"
+        style="font-size: 0.75rem; letter-spacing: 0.5px;">Inventory</small>
+      <ul class="nav flex-column">
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/products"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-box me-3"></i>
+            <span>Products</span>
+          </a>
+        </li>
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/products/new"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-plus-circle me-3"></i>
+            <span>Add Product</span>
+          </a>
+        </li>
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/products/warranty-requests"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-shield-check me-3"></i>
+            <span>Warranty Requests</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="menu-section mb-4">
+      <small class="text-muted text-uppercase fw-bold d-block mb-2"
+        style="font-size: 0.75rem; letter-spacing: 0.5px;">Support</small>
+      <ul class="nav flex-column">
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/queries"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-chat-dots me-3"></i>
+            <span>Customer Queries</span>
+            <span class="badge bg-warning text-dark ms-auto">New</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sidebar-footer position-absolute bottom-0 start-0 w-100 p-3 border-top">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-info-circle text-muted me-2"></i>
+      <small class="text-muted">Version 1.0.0</small>
+    </div>
+  </div>
+</aside>
+
+<style>
+  @media (max-width: 768px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+      transform: translateX(0);
+    }
+  }
+</style>
