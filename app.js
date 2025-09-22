@@ -36,7 +36,7 @@ const app = express();
 
 // CORS Configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://orzon.com'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://orzon.store', 'https://www.orzon.store'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
