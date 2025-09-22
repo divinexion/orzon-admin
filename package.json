@@ -5,7 +5,8 @@
   "description": "Orzon Admin - Complete product inventory management system with warranty registration, returns, and platform tracking",
   "scripts": {
     "start": "env-cmd -f ./.env node ./bin/www",
-    "init": "env-cmd -f ./.env node ./scripts/init"
+    "init": "env-cmd -f ./.env node ./scripts/init",
+    "prod": "pm2 start ecosystem.config.js"
   },
   "dependencies": {
     "@handlebars/allow-prototype-access": "^1.0.5",
