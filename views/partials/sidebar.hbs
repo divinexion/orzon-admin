@@ -24,6 +24,22 @@
   <div class="sidebar-menu p-3">
     <div class="menu-section mb-4">
       <small class="text-muted text-uppercase fw-bold d-block mb-2"
+        style="font-size: 0.75rem; letter-spacing: 0.5px;">Overview</small>
+      <ul class="nav flex-column">
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/dashboard"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-speedometer2 me-3"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="menu-section mb-4">
+      <small class="text-muted text-uppercase fw-bold d-block mb-2"
         style="font-size: 0.75rem; letter-spacing: 0.5px;">Inventory</small>
       <ul class="nav flex-column">
         <li class="nav-item mb-1">
@@ -42,6 +58,15 @@
             onmouseout="this.style.background=''; this.style.color='#495057';">
             <i class="bi bi-plus-circle me-3"></i>
             <span>Add Product</span>
+          </a>
+        </li>
+        <li class="nav-item mb-1">
+          <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="/returns"
+            style="color: #495057; transition: all 0.3s;"
+            onmouseover="this.style.background='linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)'; this.style.color='#667eea';"
+            onmouseout="this.style.background=''; this.style.color='#495057';">
+            <i class="bi bi-arrow-return-left me-3"></i>
+            <span>Returns</span>
           </a>
         </li>
         <li class="nav-item mb-1">

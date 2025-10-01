@@ -55,119 +55,33 @@
       </nav>
     </div>
     <div class="col-auto">
-      <a class="btn btn-primary" href="/products/new">
-        <i class="bi bi-plus-circle me-2"></i> Add Product
-      </a>
+      <div class="btn-group" role="group">
+        <a class="btn btn-primary" href="/products/new">
+          <i class="bi bi-plus-circle me-2"></i> Add Product
+        </a>
+        <a class="btn btn-outline-primary" href="/products/bulk">
+          <i class="bi bi-boxes me-2"></i> Bulk Add
+        </a>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="row mb-4">
-  <div class="col-lg-3 col-md-6 mb-3">
-    <div class="stats-card">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-box fs-1 me-3" style="color: #667eea;"></i>
-        <div>
-          <h3>{{stats.totalProducts}}</h3>
-          <p class="mb-0">Total Products</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-3 col-md-6 mb-3">
-    <div class="stats-card">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-cart-check fs-1 me-3" style="color: #28a745;"></i>
-        <div>
-          <h3>{{stats.totalSold}}</h3>
-          <p class="mb-0">Sold Products</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  {{!-- <div class="col-lg-3 col-md-6 mb-3">
-    <div class="stats-card">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-archive fs-1 me-3" style="color: #ffc107;"></i>
-        <div>
-          <h3>{{stats.totalUnsold}}</h3>
-          <p class="mb-0">In Stock</p>
-        </div>
-      </div>
-    </div>
-  </div> --}}
-  <div class="col-lg-3 col-md-6 mb-3">
-    <div class="stats-card">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-shield-check fs-1 me-3" style="color: #17a2b8;"></i>
-        <div>
-          <h3>{{stats.warranty.totalRegistered}}</h3>
-          <p class="mb-0">Warranties</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  {{#if stats.totalReturns}}
-  <div class="col-lg-3 col-md-6 mb-3">
-    <div class="stats-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-arrow-return-left fs-1 me-3" style="color: #fff;"></i>
-        <div>
-          <h3>{{stats.totalReturns}}</h3>
-          <p class="mb-0">Returns</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  {{/if}}
-</div>
-
-<!-- Warranty Statistics -->
+<!-- Quick Stats Row -->
 <div class="row mb-4">
   <div class="col-12">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title mb-3">
-          <i class="bi bi-shield-fill me-2" style="color: #667eea;"></i>
-          Warranty Overview
-        </h5>
-        <div class="row text-center">
-          <div class="col-md-3">
-            <div class="p-3 border rounded">
-              <i class="bi bi-clock-history fs-3 text-warning"></i>
-              <h4 class="mt-2">{{stats.warranty.totalPending}}</h4>
-              <p class="mb-0 text-muted">Pending Approval</p>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="p-3 border rounded">
-              <i class="bi bi-check-circle fs-3 text-success"></i>
-              <h4 class="mt-2">{{stats.warranty.totalActive}}</h4>
-              <p class="mb-0 text-muted">Active Warranties</p>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="p-3 border rounded">
-              <i class="bi bi-x-circle fs-3 text-danger"></i>
-              <h4 class="mt-2">{{stats.warranty.totalExpired}}</h4>
-              <p class="mb-0 text-muted">Expired</p>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="p-3 border rounded">
-              <i class="bi bi-shield fs-3 text-primary"></i>
-              <h4 class="mt-2">{{stats.warranty.totalRegistered}}</h4>
-              <p class="mb-0 text-muted">Total Registered</p>
-            </div>
-          </div>
-        </div>
-        {{#if stats.warranty.totalPending}}
-        <div class="alert alert-warning mt-3 mb-0">
-          <i class="bi bi-exclamation-triangle me-2"></i>
-          You have <strong>{{stats.warranty.totalPending}}</strong> warranty requests pending approval.
-          <a href="/products/warranty-requests?status=pending" class="alert-link">Review now →</a>
-        </div>
-        {{/if}}
+    <div class="alert alert-info d-flex align-items-center">
+      <i class="bi bi-info-circle me-3 fs-4"></i>
+      <div class="flex-grow-1">
+        <strong>{{total}} Products</strong> found {{#if filters.q}}for search "{{filters.q}}"{{/if}}
+        {{#if filters.platform}}on {{capitalize filters.platform}}{{/if}}
+        {{#if filters.type}}with {{formatCapacity filters.type}}{{/if}}
+        {{#if filters.source}}from {{filters.source}}{{/if}}
+      </div>
+      <div>
+        <a href="/dashboard" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-graph-up me-2"></i> View Analytics
+        </a>
       </div>
     </div>
   </div>
@@ -178,23 +92,23 @@
   <form method="get" action="/products">
     <!-- First Row: Main Filters -->
     <div class="row g-3 mb-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Search</label>
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
           <input type="text" class="form-control" name="q" value="{{filters.q}}" placeholder="Name, Serial, Description..." />
         </div>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Type Capacity</label>
+      <div class="col-md-3">
+        <label class="form-label">Capacity</label>
         <select class="form-select" name="type">
           <option value="">All Capacities</option>
           {{#each capacities}}
-            <option value="{{this}}" {{#if (eq ../filters.type this)}}selected{{/if}}>{{this}} GB</option>
+            <option value="{{this}}" {{#if (eq ../filters.type this)}}selected{{/if}}>{{formatCapacity this}}</option>
           {{/each}}
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Platform</label>
         <select class="form-select" name="platform">
           <option value="">All Platforms</option>
@@ -203,15 +117,24 @@
           {{/each}}
         </select>
       </div>
+      <div class="col-md-3">
+        <label class="form-label">Source</label>
+        <select class="form-select" name="source">
+          <option value="">All Sources</option>
+          {{#each sources}}
+            <option value="{{this}}" {{#if (eq ../filters.source this)}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+      </div>
     </div>
     
-    <!-- Second Row: Buyer Search and Actions -->
+    <!-- Second Row: Customer Search and Actions -->
     <div class="row g-3 align-items-end">
       <div class="col-md-6">
-        <label class="form-label">Buyer Information</label>
+        <label class="form-label">Customer Information</label>
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control" name="buyer" value="{{filters.buyer}}" placeholder="Search by buyer name, phone, or email..." />
+          <input type="text" class="form-control" name="buyer" value="{{filters.buyer}}" placeholder="Search by customer name, phone, or email..." />
         </div>
       </div>
       <div class="col-md-6">
@@ -238,7 +161,8 @@
             {{!-- <th>Type</th> --}}
             <th>Capacity</th>
             <th>Platform</th>
-            <th>Buyer</th>
+            <th>Source</th>
+            <th>Customer</th>
             <th>Status</th>
             <th>Sold Date</th>
             <th class="text-center">Actions</th>
@@ -258,12 +182,19 @@
                   {{/if}} --}}
                 {{!-- </td> --}}
                 {{!-- <td>{{productType}}</td> --}}
-                <td><span class="badge bg-info text-dark">{{typeCapacity}} GB</span></td>
+                <td><span class="badge bg-info text-dark">{{formatCapacity typeCapacity}}</span></td>
                 <td>
                   {{#if platform}}
                     <span class="badge bg-primary">{{capitalize platform}}</span>
                   {{else}}
                     <span class="badge bg-secondary">Unknown</span>
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if source}}
+                    <span class="badge bg-success">{{source}}</span>
+                  {{else}}
+                    <span class="badge bg-light text-dark">Not Set</span>
                   {{/if}}
                 </td>
                 <td>
@@ -296,7 +227,7 @@
             {{/each}}
           {{else}}
             <tr>
-              <td colspan="9" class="text-center py-4">
+              <td colspan="8" class="text-center py-4">
                 <i class="bi bi-inbox fs-1 text-muted"></i>
                 <p class="text-muted mt-2">No products found</p>
               </td>
@@ -326,7 +257,7 @@ if (filterForm) {
       if (tableBody) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="9" class="text-center py-5">
+            <td colspan="8" class="text-center py-5">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>

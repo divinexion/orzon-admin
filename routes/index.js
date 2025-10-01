@@ -4,7 +4,7 @@ const passport = require('passport');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  if (req.isAuthenticated()) return res.redirect('/products');
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
   res.render('auth/login', { layout: 'auth', title: 'Login' });
 });
 
@@ -17,7 +17,7 @@ router.post('/', (req, res, next) => {
     }
     req.logIn(user, (err) => {
       if (err) return next(err);
-      return res.redirect('/products');
+      return res.redirect('/dashboard');
     });
   })(req, res, next);
 });

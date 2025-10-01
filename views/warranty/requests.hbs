@@ -155,7 +155,7 @@
               
               {{#if (eq warranty.status 'pending')}}
                 <div class="d-grid gap-2">
-                  <button class="btn btn-success" onclick="approveWarranty('{{_id}}')">
+                  <button class="btn btn-success" onclick="showApproveModal('{{_id}}', '{{warranty.durationMonths}}')">
                     <i class="bi bi-check-circle me-1"></i> Approve Warranty
                   </button>
                   <button class="btn btn-danger" onclick="showRejectModal('{{_id}}')">
@@ -189,6 +189,49 @@
   </div>
 {{/if}}
 
+<!-- Approve Warranty Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Approve Warranty Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="approveProductId">
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Warranty Approval:</strong> You can modify the warranty duration before approving. The expiry date will be automatically calculated from the original registration date.
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-calendar me-1"></i> Warranty Duration</label>
+          <select class="form-select" id="warrantyDuration" onchange="updateExpiryPreview()">
+            <option value="6">6 Months</option>
+            <option value="12" selected>12 Months (1 Year)</option>
+            <option value="18">18 Months</option>
+            <option value="24">24 Months (2 Years)</option>
+            <option value="36">36 Months (3 Years)</option>
+            <option value="48">48 Months (4 Years)</option>
+            <option value="60">60 Months (5 Years)</option>
+          </select>
+          <div class="form-text">Select the warranty period for this product</div>
+          <div id="expiryPreview" class="mt-2"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Approval Notes (Optional)</label>
+          <textarea class="form-control" id="approvalNotes" rows="3" placeholder="Add any notes about the approval (optional)"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="approveWarranty()">
+          <i class="bi bi-check-circle me-1"></i> Approve Warranty
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
   <div class="modal-dialog">
@@ -216,10 +259,62 @@
 
 {{#section 'script'}}
 <script>
-async function approveWarranty(productId) {
-  if (!confirm('Are you sure you want to approve this warranty request?')) {
-    return;
+function showApproveModal(productId, currentDuration) {
+  document.getElementById('approveProductId').value = productId;
+  document.getElementById('approvalNotes').value = '';
+  
+  // Set the current duration as selected, default to 12 if not provided
+  const durationSelect = document.getElementById('warrantyDuration');
+  const duration = currentDuration || '12';
+  
+  // Try to select the current duration, otherwise keep default
+  for (let option of durationSelect.options) {
+    if (option.value === duration.toString()) {
+      option.selected = true;
+      break;
+    }
   }
+  
+  // Update expiry preview
+  updateExpiryPreview();
+  
+  const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+  modal.show();
+}
+
+function updateExpiryPreview() {
+  const durationMonths = parseInt(document.getElementById('warrantyDuration').value);
+  const previewDiv = document.getElementById('expiryPreview');
+  
+  if (durationMonths) {
+    // Calculate expiry date from today (approximation for preview)
+    const today = new Date();
+    const expiryDate = new Date(today);
+    expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
+    
+    const options = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    const formattedDate = expiryDate.toLocaleDateString('en-US', options);
+    
+    previewDiv.innerHTML = `
+      <div class="alert alert-light border">
+        <i class="bi bi-calendar-check me-1 text-success"></i>
+        <strong>Estimated Expiry:</strong> ${formattedDate}
+        <small class="text-muted d-block">Actual date will be calculated from original registration date</small>
+      </div>
+    `;
+  }
+}
+
+async function approveWarranty() {
+  const productId = document.getElementById('approveProductId').value;
+  const durationMonths = document.getElementById('warrantyDuration').value;
+  const notes = document.getElementById('approvalNotes').value;
+  
+  if (!productId) return;
   
   try {
     const response = await fetch(`/products/${productId}/warranty/status`, {
@@ -230,14 +325,16 @@ async function approveWarranty(productId) {
       },
       body: JSON.stringify({ 
         status: 'active',
-        notes: 'Approved from warranty requests page'
+        durationMonths: parseInt(durationMonths),
+        notes: notes || `Approved from warranty requests page with ${durationMonths} months warranty`
       })
     });
     
     const result = await response.json();
     
     if (result.success) {
-      showToast('success', result.message || 'Warranty approved successfully');
+      bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+      showToast('success', result.message || `Warranty approved for ${durationMonths} months`);
       setTimeout(() => location.reload(), 1500);
     } else {
       showToast('error', result.message || 'Failed to approve warranty');

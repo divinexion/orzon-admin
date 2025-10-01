@@ -1,0 +1,401 @@
+{{#section 'style'}}
+<style>
+  .stats-card {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .stats-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+  .filter-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .return-badge {
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  tbody tr {
+    transition: all 0.3s;
+  }
+  tbody tr:hover {
+    background-color: rgba(220, 53, 69, 0.05);
+  }
+  .action-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+  }
+  .return-reason {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+{{/section}}
+
+<div class="page-header mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="mb-0">Returns Management</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Returns</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <div class="btn-group" role="group">
+        <a class="btn btn-outline-primary" href="/dashboard">
+          <i class="bi bi-graph-up me-2"></i> Dashboard
+        </a>
+        <a class="btn btn-outline-success" href="/products">
+          <i class="bi bi-box me-2"></i> Products
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Returns Statistics -->
+<div class="row mb-4">
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="stats-card">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-arrow-return-left fs-1 me-3" style="color: rgba(255,255,255,0.3);"></i>
+        <div>
+          <h3>{{stats.total}}</h3>
+          <p class="mb-0">Total Returns</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="stats-card" style="background: linear-gradient(135deg, #fd7e14 0%, #e63946 100%);">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-calendar-month fs-1 me-3" style="color: rgba(255,255,255,0.3);"></i>
+        <div>
+          <h3>{{stats.thisMonth}}</h3>
+          <p class="mb-0">This Month</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="stats-card" style="background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-graph-down fs-1 me-3" style="color: rgba(255,255,255,0.3);"></i>
+        <div>
+          <h3>{{#if stats.total}}{{#divide stats.thisMonth stats.total}}{{this}}%{{/divide}}{{else}}0%{{/if}}</h3>
+          <p class="mb-0">Return Rate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats Row -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="alert alert-warning d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle me-3 fs-4"></i>
+      <div class="flex-grow-1">
+        <strong>{{stats.total}} Returns</strong> found
+        {{#if filters.q}}for search "{{filters.q}}"{{/if}}
+        {{#if filters.platform}}on {{capitalize filters.platform}}{{/if}}
+        {{#if filters.type}}with {{formatCapacity filters.type}}{{/if}}
+        {{#if filters.source}}from {{filters.source}}{{/if}}
+        {{#if filters.reason}}due to "{{filters.reason}}"{{/if}}
+      </div>
+      <div>
+        <a href="/dashboard" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-graph-up me-2"></i> View Analytics
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+  <h5 class="mb-3"><i class="bi bi-funnel me-2"></i> Filters</h5>
+  <form method="get" action="/returns">
+    <!-- First Row: Search and Time -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Search</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" name="q" value="{{filters.q}}" placeholder="Serial, Name, Notes..." />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Date Range</label>
+        <select class="form-select" name="dateRange">
+          <option value="">All Time</option>
+          <option value="today" {{#if (eq filters.dateRange "today")}}selected{{/if}}>Today</option>
+          <option value="week" {{#if (eq filters.dateRange "week")}}selected{{/if}}>Last Week</option>
+          <option value="month" {{#if (eq filters.dateRange "month")}}selected{{/if}}>Last Month</option>
+          <option value="quarter" {{#if (eq filters.dateRange "quarter")}}selected{{/if}}>Last Quarter</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Return Reason</label>
+        <select class="form-select" name="reason">
+          <option value="">All Reasons</option>
+          {{#each reasons}}
+            <option value="{{this}}" {{#if (eq ../filters.reason this)}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+    
+    <!-- Second Row: Product Filters -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label">Capacity</label>
+        <select class="form-select" name="type">
+          <option value="">All Capacities</option>
+          {{#each capacities}}
+            <option value="{{this}}" {{#if (eq ../filters.type this)}}selected{{/if}}>{{formatCapacity this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Platform</label>
+        <select class="form-select" name="platform">
+          <option value="">All Platforms</option>
+          {{#each platforms}}
+            <option value="{{this}}" {{#if (eq ../filters.platform this)}}selected{{/if}}>{{capitalize this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Source</label>
+        <select class="form-select" name="source">
+          <option value="">All Sources</option>
+          {{#each sources}}
+            <option value="{{this}}" {{#if (eq ../filters.source this)}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <div class="d-grid w-100 gap-2">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-funnel-fill me-2"></i> Apply Filters
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Reset Button -->
+    <div class="row">
+      <div class="col-12">
+        <a href="/returns" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-clockwise me-2"></i> Reset All Filters
+        </a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Returns Table -->
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Serial Number</th>
+            <th>Product</th>
+            <th>Customer</th>
+            <th>Return Date</th>
+            <th>Return Reason</th>
+            <th>Source</th>
+            <th>Warranty Status</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if items.length}}
+            {{#each items}}
+              <tr>
+                <td>
+                  <span class="badge bg-danger return-badge">{{serialNumber}}</span>
+                </td>
+                <td>
+                  <div>
+                    <strong>{{name}}</strong>
+                    <br>
+                    <small class="text-muted">
+                      <span class="badge bg-info text-dark">{{formatCapacity typeCapacity}}</span>
+                      {{#if platform}}
+                        <span class="badge bg-primary ms-1">{{capitalize platform}}</span>
+                      {{/if}}
+                    </small>
+                  </div>
+                </td>
+                <td>
+                  {{#if buyer.name}}
+                    <div>
+                      <strong>{{buyer.name}}</strong>
+                      {{#if buyer.email}}<br><small class="text-muted">{{buyer.email}}</small>{{/if}}
+                    </div>
+                  {{else}}
+                    <span class="text-muted">-</span>
+                  {{/if}}
+                </td>
+                <td>
+                  <div>
+                    <strong>{{formatDate returnDate}}</strong>
+                    <br><small class="text-muted">by {{returnedBy}}</small>
+                  </div>
+                </td>
+                <td>
+                  <span class="return-reason" title="{{returnReason}}">{{returnReason}}</span>
+                  {{#if returnNotes}}
+                    <br><small class="text-muted" title="{{returnNotes}}">{{returnNotes}}</small>
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if source}}
+                    <span class="badge bg-secondary">{{source}}</span>
+                  {{else}}
+                    <span class="text-muted">-</span>
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if warrantyRegistered}}
+                    {{#if warranty.status}}
+                      {{#if (eq warranty.status "active")}}
+                        <span class="badge bg-success">Was Active</span>
+                      {{else if (eq warranty.status "pending")}}
+                        <span class="badge bg-warning">Was Pending</span>
+                      {{else if (eq warranty.status "expired")}}
+                        <span class="badge bg-danger">Was Expired</span>
+                      {{else}}
+                        <span class="badge bg-secondary">{{warranty.status}}</span>
+                      {{/if}}
+                    {{else}}
+                      <span class="badge bg-info">Registered</span>
+                    {{/if}}
+                  {{else}}
+                    <span class="badge bg-light text-dark">Not Registered</span>
+                  {{/if}}
+                </td>
+                <td class="text-center">
+                  <a class="btn btn-sm btn-outline-info action-btn" href="/returns/{{_id}}">
+                    <i class="bi bi-eye"></i> View
+                  </a>
+                </td>
+              </tr>
+            {{/each}}
+          {{else}}
+            <tr>
+              <td colspan="8" class="text-center py-4">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No returns found</p>
+                {{#if (or filters.q filters.platform filters.type filters.source filters.reason filters.dateRange)}}
+                  <a href="/returns" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Clear Filters
+                  </a>
+                {{/if}}
+              </td>
+            </tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-center mt-4">
+  {{{pagination pagination}}}
+</div>
+
+{{#section 'script'}}
+<script>
+// Add loading overlay for filtering
+const filterForm = document.querySelector('form[action="/returns"]');
+const tableCard = document.querySelector('.card');
+
+if (filterForm) {
+  filterForm.addEventListener('submit', function(e) {
+    // Show loading state in table
+    if (tableCard) {
+      const tableBody = tableCard.querySelector('tbody');
+      if (tableBody) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-muted">Loading returns...</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+  });
+}
+
+// Add loading indicator for pagination links
+document.querySelectorAll('.pagination a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    // Show loading in table
+    if (tableCard) {
+      const tableBody = tableCard.querySelector('tbody');
+      if (tableBody) {
+        // Add loading overlay over the table
+        const overlay = document.createElement('div');
+        overlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+        overlay.style.background = 'rgba(255,255,255,0.8)';
+        overlay.style.zIndex = '10';
+        overlay.innerHTML = `
+          <div class="text-center">
+            <div class="spinner-border text-danger" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="text-muted mt-2">Loading returns...</div>
+          </div>
+        `;
+        
+        // Make table position relative
+        tableCard.style.position = 'relative';
+        tableCard.appendChild(overlay);
+      }
+    }
+  });
+});
+
+// Tooltip for truncated text
+document.querySelectorAll('[title]').forEach(el => {
+  el.addEventListener('mouseenter', function() {
+    if (this.scrollWidth > this.clientWidth) {
+      // Element is truncated, show full text
+      this.setAttribute('data-bs-toggle', 'tooltip');
+      this.setAttribute('data-bs-placement', 'top');
+      new bootstrap.Tooltip(this);
+    }
+  });
+});
+</script>
+{{/section}}

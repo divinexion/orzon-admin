@@ -15,6 +15,7 @@ router.get('/', async (req, res, next) => {
     const q = (req.query.q || '').trim();
     const typeCapacity = (req.query.type || '').trim();
     const platform = (req.query.platform || '').trim();
+    const source = (req.query.source || '').trim();
     const buyer = (req.query.buyer || '').trim();
 
     const filter = {};
@@ -26,6 +27,9 @@ router.get('/', async (req, res, next) => {
     }
     if (platform) {
       filter.platform = platform;
+    }
+    if (source) {
+      filter.source = source;
     }
     if (buyer) {
       filter.$or = [
@@ -43,60 +47,20 @@ router.get('/', async (req, res, next) => {
       .lean();
 
     const totalPages = Math.max(1, Math.ceil(total / limit));
-
-    // Calculate statistics
-    const allProducts = await Product.find().lean();
-    const allReturns = await Return.find().lean();
-    const now = new Date();
     
-    const stats = {
-      totalProducts: allProducts.length,
-      totalSold: 0,
-      totalUnsold: 0,
-      totalReturns: allReturns.length,
-      warranty: {
-        totalRegistered: 0,
-        totalActive: 0,
-        totalExpired: 0,
-        totalPending: 0
-      }
-    };
-    
-    allProducts.forEach(product => {
-      // Count sold/unsold
-      if (product.soldDate) {
-        stats.totalSold++;
-      } else {
-        stats.totalUnsold++;
-      }
-      
-      // Count warranty statistics
-      if (product.warrantyRegistered && product.warranty) {
-        stats.warranty.totalRegistered++;
-        
-        if (product.warranty.status === 'pending') {
-          stats.warranty.totalPending++;
-        } else if (product.warranty.status === 'active') {
-          // Check if expired
-          const expiryDate = new Date(product.warranty.expiryDate);
-          if (expiryDate < now) {
-            stats.warranty.totalExpired++;
-          } else {
-            stats.warranty.totalActive++;
-          }
-        }
-      }
-    });
+    // Get distinct sources for filter dropdown
+    const distinctSources = await Product.distinct('source', { source: { $ne: null, $ne: '' } });
 
     res.render('products/list', {
       layout: 'main',
-      title: 'Products',
+      title: 'Product Inventory',
       items,
-      stats,
-      filters: { q, buyer, type: typeCapacity, platform },
+      total,
+      filters: { q, buyer, type: typeCapacity, platform, source },
       capacities: TYPE_CAPACITIES,
       platforms: SUPPORTED_PLATFORMS,
-      pagination: { page, totalPages, baseUrl: '/products?limit=' + limit + (q ? '&q=' + encodeURIComponent(q) : '') + (buyer ? '&buyer=' + encodeURIComponent(buyer) : '') + (typeCapacity ? '&type=' + encodeURIComponent(typeCapacity) : '') + (platform ? '&platform=' + encodeURIComponent(platform) : '') },
+      sources: distinctSources.sort(),
+      pagination: { page, totalPages, baseUrl: '/products?limit=' + limit + (q ? '&q=' + encodeURIComponent(q) : '') + (buyer ? '&buyer=' + encodeURIComponent(buyer) : '') + (typeCapacity ? '&type=' + encodeURIComponent(typeCapacity) : '') + (platform ? '&platform=' + encodeURIComponent(platform) : '') + (source ? '&source=' + encodeURIComponent(source) : '') },
     });
 
   } catch (err) {
@@ -112,6 +76,16 @@ router.get('/new', (req, res) => {
     capacities: TYPE_CAPACITIES,
     platforms: SUPPORTED_PLATFORMS,
     isEdit: false,
+  });
+});
+
+// Bulk product addition page
+router.get('/bulk', (req, res) => {
+  res.render('products/bulk', {
+    layout: 'main',
+    title: 'Bulk Add Products',
+    capacities: TYPE_CAPACITIES,
+    platforms: SUPPORTED_PLATFORMS,
   });
 });
 
@@ -216,6 +190,7 @@ router.post('/', async (req, res, next) => {
       productType: b.productType || PRODUCT_TYPE,
       typeCapacity: b.typeCapacity,
       platform: b.platform || 'other',
+      source: b.source || undefined,
       description: b.description,
       addDate: b.addDate || new Date(),
       buyer: {
@@ -237,6 +212,87 @@ router.post('/', async (req, res, next) => {
       return res.redirect('back');
     }
     next(err);
+  }
+});
+
+// Bulk product addition POST route
+router.post('/bulk', async (req, res, next) => {
+  try {
+    const { 
+      serialPrefix,
+      startNumber, 
+      endNumber, 
+      typeCapacity, 
+      source,
+      description,
+      addDate 
+    } = req.body;
+
+    // Validate input
+    if (!serialPrefix || !startNumber || !endNumber || !typeCapacity || !source) {
+      req.flash('error', { message: 'All fields are required for bulk addition' });
+      return res.redirect('back');
+    }
+
+    const start = parseInt(startNumber);
+    const end = parseInt(endNumber);
+
+    if (start > end) {
+      req.flash('error', { message: 'Start number must be less than or equal to end number' });
+      return res.redirect('back');
+    }
+
+    if (end - start > 10000) {
+      req.flash('error', { message: 'Cannot add more than 10,000 products at once' });
+      return res.redirect('back');
+    }
+
+    const products = [];
+    const errors = [];
+    let successCount = 0;
+
+    for (let i = start; i <= end; i++) {
+      const paddedNumber = i.toString().padStart(5, '0');
+      const serialNumber = `${serialPrefix}${paddedNumber}`;
+      const capacityDisplay = typeCapacity >= 1024 ? `${typeCapacity/1024}TB` : `${typeCapacity}GB`;
+      const productName = `Storage Disk ${capacityDisplay} - ${serialNumber}`;
+
+      try {
+        await Product.create({
+          serialNumber,
+          name: productName,
+          productType: PRODUCT_TYPE,
+          typeCapacity,
+          source: source.trim(),
+          description: description || `Bulk imported from ${source}`,
+          addDate: addDate ? new Date(addDate) : new Date(),
+          buyer: {},
+        });
+        successCount++;
+      } catch (err) {
+        if (err.code === 11000) {
+          errors.push(`${serialNumber} - already exists`);
+        } else {
+          errors.push(`${serialNumber} - ${err.message}`);
+        }
+      }
+    }
+
+    // Flash success and error messages
+    if (successCount > 0) {
+      req.flash('success', { message: `Successfully added ${successCount} products` });
+    }
+    if (errors.length > 0) {
+      req.flash('warning', { 
+        message: `${errors.length} products failed to add. First few errors: ${errors.slice(0, 5).join(', ')}` 
+      });
+    }
+
+    res.redirect('/products');
+  } catch (err) {
+    console.error('Bulk product creation error:', err);
+    req.flash('error', { message: 'Bulk addition failed: ' + err.message });
+    res.redirect('back');
   }
 });
 
@@ -267,6 +323,7 @@ router.post('/:id', async (req, res, next) => {
       productType: b.productType || PRODUCT_TYPE,
       typeCapacity: b.typeCapacity,
       platform: b.platform || 'other',
+      source: b.source || undefined,
       description: b.description,
       addDate: b.addDate || undefined,
       buyer: {
@@ -391,7 +448,7 @@ router.post('/:id/warranty', upload.single('billFile'), async (req, res, next) =
 router.patch('/:id/warranty/status', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, durationMonths } = req.body;
     
     if (!status || !['active', 'expired', 'void'].includes(status)) {
       return res.status(400).json({
@@ -419,7 +476,25 @@ router.patch('/:id/warranty/status', async (req, res, next) => {
     product.warranty.status = status;
     product.warranty.lastModifiedBy = req.user?.email || 'admin';
     product.warranty.lastModifiedAt = new Date();
-    if (notes) {
+    
+    // If duration is provided and status is being approved, recalculate expiry date
+    if (durationMonths && status === 'active') {
+      const duration = parseInt(durationMonths);
+      if (duration > 0 && duration <= 60) { // Max 5 years warranty
+        const registrationDate = new Date(product.warranty.registrationDate);
+        const newExpiryDate = new Date(registrationDate);
+        newExpiryDate.setMonth(newExpiryDate.getMonth() + duration);
+        
+        product.warranty.durationMonths = duration;
+        product.warranty.expiryDate = newExpiryDate;
+        
+        if (notes) {
+          product.warranty.notes = (product.warranty.notes || '') + '\n' + notes + ` (Duration updated to ${duration} months)`;
+        } else {
+          product.warranty.notes = (product.warranty.notes || '') + `\nDuration updated to ${duration} months by admin`;
+        }
+      }
+    } else if (notes) {
       product.warranty.notes = (product.warranty.notes || '') + '\n' + notes;
     }
     
@@ -472,6 +547,7 @@ router.post('/:id/return', async (req, res, next) => {
       productType: product.productType,
       typeCapacity: product.typeCapacity,
       platform: product.platform,
+      source: product.source,
       description: product.description,
       addDate: product.addDate,
       buyer: product.buyer,

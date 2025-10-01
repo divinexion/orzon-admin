@@ -161,11 +161,11 @@ router.post('/register', warrantyLimiter, upload.single('billFile'), async (req,
       });
     }
     
-    // Validate buyer details
+    // Validate customer details
     if (!buyerName || !buyerEmail || !buyerPhone) {
       return res.status(400).json({
         success: false,
-        message: 'Buyer name, email, and phone are required'
+        message: 'Customer name, email, and phone are required'
       });
     }
     
@@ -176,45 +176,34 @@ router.post('/register', warrantyLimiter, upload.single('billFile'), async (req,
       });
     }
     
-    // Find or create product
-    let product = await Product.findOne({ serialNumber });
+    // Find existing product - warranty can only be registered for existing products
+    const product = await Product.findOne({ serialNumber });
     
-    if (product) {
-      // Check if warranty already registered
-      if (product.warrantyRegistered) {
-        return res.status(400).json({
-          success: false,
-          message: 'Warranty already registered for this product'
-        });
-      }
-      
-      // Update existing product with buyer details and platform
-      product.buyer = {
-        name: buyerName,
-        phone: buyerPhone,
-        email: buyerEmail,
-        address: buyerAddress || '',
-        paymentMethod: buyerPaymentMethod || ''
-      };
-      product.platform = platform.toLowerCase();
-      product.soldDate = new Date(); // Set sold date when warranty is registered
-    } else {
-      // Create new product with basic details
-      product = new Product({
-        serialNumber,
-        name: `Product ${serialNumber}`, // Default name, can be updated by admin later
-        platform: platform.toLowerCase(),
-        typeCapacity: '512', // Default capacity, can be updated by admin later
-        buyer: {
-          name: buyerName,
-          phone: buyerPhone,
-          email: buyerEmail,
-          address: buyerAddress || '',
-          paymentMethod: buyerPaymentMethod || ''
-        },
-        soldDate: new Date()
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found for warranty. Please contact support if you believe this is an error.'
       });
     }
+    
+    // Check if warranty already registered
+    if (product.warrantyRegistered) {
+      return res.status(400).json({
+        success: false,
+        message: 'Warranty already registered for this product'
+      });
+    }
+    
+    // Update existing product with customer details and platform
+    product.buyer = {
+      name: buyerName,
+      phone: buyerPhone,
+      email: buyerEmail,
+      address: buyerAddress || '',
+      paymentMethod: buyerPaymentMethod || ''
+    };
+    product.platform = platform.toLowerCase();
+    product.soldDate = new Date(); // Set sold date when warranty is registered
     
     // Save the product first to get the ID
     await product.save();

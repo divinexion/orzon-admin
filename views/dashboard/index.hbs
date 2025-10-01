@@ -1,0 +1,600 @@
+{{#section 'style'}}
+<style>
+  .dashboard-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+  }
+  .dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  .metric-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+  }
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+  .filter-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
+  }
+  .chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .progress-bar-custom {
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-fill {
+    height: 100%;
+    transition: width 0.8s ease;
+    border-radius: 4px;
+  }
+  .table-dashboard {
+    font-size: 0.9rem;
+  }
+  .table-dashboard th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+  }
+  .trend-up {
+    color: #28a745;
+  }
+  .trend-down {
+    color: #dc3545;
+  }
+  .trend-stable {
+    color: #6c757d;
+  }
+  .section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+</style>
+{{/section}}
+
+<div class="page-header mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="mb-0">Dashboard</h2>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item active">Analytics & Overview</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <div class="btn-group" role="group">
+        <a class="btn btn-outline-primary" href="/products">
+          <i class="bi bi-box me-2"></i> Products
+        </a>
+        <a class="btn btn-outline-success" href="/returns">
+          <i class="bi bi-arrow-return-left me-2"></i> Returns
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters Section -->
+<div class="filter-card">
+  <h5 class="mb-3"><i class="bi bi-funnel me-2"></i> Dashboard Filters</h5>
+  <form method="get" action="/dashboard" id="dashboardFilters">
+    <div class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label">Time Range</label>
+        <select class="form-select" name="dateRange">
+          <option value="all" {{#if (eq filters.dateRange "all")}}selected{{/if}}>All Time</option>
+          <option value="week" {{#if (eq filters.dateRange "week")}}selected{{/if}}>Last Week</option>
+          <option value="month" {{#if (eq filters.dateRange "month")}}selected{{/if}}>Last Month</option>
+          <option value="quarter" {{#if (eq filters.dateRange "quarter")}}selected{{/if}}>Last Quarter</option>
+          <option value="year" {{#if (eq filters.dateRange "year")}}selected{{/if}}>Last Year</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Platform</label>
+        <select class="form-select" name="platform">
+          <option value="">All Platforms</option>
+          {{#each platforms}}
+            <option value="{{this}}" {{#if (eq ../filters.platform this)}}selected{{/if}}>{{capitalize this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Capacity</label>
+        <select class="form-select" name="capacity">
+          <option value="">All Capacities</option>
+          {{#each capacities}}
+            <option value="{{this}}" {{#if (eq ../filters.capacity this)}}selected{{/if}}>{{formatCapacity this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Source</label>
+        <select class="form-select" name="source">
+          <option value="">All Sources</option>
+          {{#each sources}}
+            <option value="{{this}}" {{#if (eq ../filters.source this)}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Warranty</label>
+        <select class="form-select" name="warrantyStatus">
+          <option value="">All Warranty</option>
+          <option value="registered" {{#if (eq filters.warrantyStatus "registered")}}selected{{/if}}>Registered</option>
+          <option value="not_registered" {{#if (eq filters.warrantyStatus "not_registered")}}selected{{/if}}>Not Registered</option>
+          <option value="active" {{#if (eq filters.warrantyStatus "active")}}selected{{/if}}>Active</option>
+          <option value="pending" {{#if (eq filters.warrantyStatus "pending")}}selected{{/if}}>Pending</option>
+          <option value="expired" {{#if (eq filters.warrantyStatus "expired")}}selected{{/if}}>Expired</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="d-grid w-100">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-funnel-fill me-2"></i> Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+  <div class="col-xl-3 col-md-6">
+    <div class="metric-card">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="metric-value">{{stats.totalProducts}}</div>
+          <div class="metric-label">Total Products</div>
+        </div>
+        <div class="ms-3">
+          <i class="bi bi-box fs-1" style="opacity: 0.3;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="metric-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="metric-value">{{stats.totalSold}}</div>
+          <div class="metric-label">Products Sold</div>
+        </div>
+        <div class="ms-3">
+          <i class="bi bi-cart-check fs-1" style="opacity: 0.3;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="metric-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="metric-value">{{stats.warranty.totalRegistered}}</div>
+          <div class="metric-label">Warranties Registered</div>
+        </div>
+        <div class="ms-3">
+          <i class="bi bi-shield-check fs-1" style="opacity: 0.3;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="metric-card" style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="metric-value">{{stats.totalReturns}}</div>
+          <div class="metric-label">Returns</div>
+        </div>
+        <div class="ms-3">
+          <i class="bi bi-arrow-return-left fs-1" style="opacity: 0.3;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Warranty Stats -->
+<div class="row mb-4">
+  <div class="col-xl-3 col-md-6">
+    <div class="dashboard-card text-center">
+      <i class="bi bi-clock-history fs-1 text-warning"></i>
+      <h4 class="mt-3">{{stats.warranty.totalPending}}</h4>
+      <p class="text-muted mb-0">Pending Warranties</p>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="dashboard-card text-center">
+      <i class="bi bi-check-circle fs-1 text-success"></i>
+      <h4 class="mt-3">{{stats.warranty.totalActive}}</h4>
+      <p class="text-muted mb-0">Active Warranties</p>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="dashboard-card text-center">
+      <i class="bi bi-x-circle fs-1 text-danger"></i>
+      <h4 class="mt-3">{{stats.warranty.totalExpired}}</h4>
+      <p class="text-muted mb-0">Expired Warranties</p>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="dashboard-card text-center">
+      <i class="bi bi-question-circle fs-1 text-info"></i>
+      <h4 class="mt-3">{{stats.queries.total}}</h4>
+      <p class="text-muted mb-0">Customer Queries</p>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Sales & Returns Trends Table -->
+  <div class="col-xl-8 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-table me-2"></i> Sales & Returns Trends (6 Months)</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-hover">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th class="text-center">Sales</th>
+              <th class="text-center">Returns</th>
+              <th class="text-center">Warranties</th>
+              <th class="text-center">Return Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each salesTrends}}
+            <tr>
+              <td><strong>{{this.month}}</strong></td>
+              <td class="text-center">
+                <span class="badge bg-success fs-6">{{this.sales}}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-danger fs-6">{{this.returns}}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info fs-6">{{this.warranties}}</span>
+              </td>
+              <td class="text-center">
+                {{#if this.sales}}
+                  {{#with (divide this.returns this.sales)}}
+                    <span class="text-{{#if (gt this 0.1)}}danger{{else}}{{#if (gt this 0.05)}}warning{{else}}success{{/if}}{{/if}}">
+                      {{multiply this 100}}%
+                    </span>
+                  {{/with}}
+                {{else}}
+                  <span class="text-muted">-</span>
+                {{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+          <tfoot>
+            <tr class="table-secondary">
+              <th>Total (6 Months)</th>
+              <th class="text-center">
+                {{#with salesTrends}}
+                  <span class="badge bg-success fs-6">{{sum this 'sales'}}</span>
+                {{/with}}
+              </th>
+              <th class="text-center">
+                {{#with salesTrends}}
+                  <span class="badge bg-danger fs-6">{{sum this 'returns'}}</span>
+                {{/with}}
+              </th>
+              <th class="text-center">
+                {{#with salesTrends}}
+                  <span class="badge bg-info fs-6">{{sum this 'warranties'}}</span>
+                {{/with}}
+              </th>
+              <th class="text-center">
+                <span class="text-muted">Avg</span>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Top Platforms -->
+  <div class="col-xl-4 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-trophy me-2"></i> Top Platforms</h5>
+      {{#each topPlatforms}}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-medium">{{capitalize this.[0]}}</span>
+          <span class="text-muted">{{this.[1].total}} products</span>
+        </div>
+        <div class="progress-bar-custom">
+          <div class="progress-fill bg-primary" style="width: {{this.[1].percentage}}%;"></div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Platform Analytics -->
+  <div class="col-xl-6 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-pie-chart me-2"></i> Platform Analytics</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-hover">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Total</th>
+              <th>Sold</th>
+              <th>Warranty</th>
+              <th>Returns</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each platforms}}
+              {{#with (lookup ../platformStats this)}}
+              <tr>
+                <td><span class="badge bg-primary">{{capitalize ../this}}</span></td>
+                <td><strong>{{total}}</strong></td>
+                <td class="text-success">{{sold}}</td>
+                <td class="text-info">{{warranty}}</td>
+                <td class="text-danger">{{returns}}</td>
+                <td>
+                  <div class="progress-bar-custom" style="width: 60px;">
+                    <div class="progress-fill bg-primary" style="width: {{percentage}}%;"></div>
+                  </div>
+                  <small class="text-muted">{{percentage}}%</small>
+                </td>
+              </tr>
+              {{/with}}
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Capacity Analytics -->
+  <div class="col-xl-6 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-hdd me-2"></i> Capacity Analytics</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-hover">
+          <thead>
+            <tr>
+              <th>Capacity</th>
+              <th>Total</th>
+              <th>Sold</th>
+              <th>Warranty</th>
+              <th>Returns</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each capacities}}
+              {{#with (lookup ../capacityStats this)}}
+              <tr>
+                <td><span class="badge bg-info">{{formatCapacity ../this}}</span></td>
+                <td><strong>{{total}}</strong></td>
+                <td class="text-success">{{sold}}</td>
+                <td class="text-info">{{warranty}}</td>
+                <td class="text-danger">{{returns}}</td>
+                <td>
+                  <div class="progress-bar-custom" style="width: 60px;">
+                    <div class="progress-fill bg-info" style="width: {{percentage}}%;"></div>
+                  </div>
+                  <small class="text-muted">{{percentage}}%</small>
+                </td>
+              </tr>
+              {{/with}}
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Source Analytics -->
+{{#if topSources.length}}
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-building me-2"></i> Source (Supplier) Analytics</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-hover">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Total Products</th>
+              <th>Sold</th>
+              <th>Warranty Registered</th>
+              <th>Returns</th>
+              <th>Success Rate</th>
+              <th>Market Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each topSources}}
+            <tr>
+              <td><strong>{{this.[0]}}</strong></td>
+              <td><span class="badge bg-primary">{{this.[1].total}}</span></td>
+              <td class="text-success">{{this.[1].sold}}</td>
+              <td class="text-info">{{this.[1].warranty}}</td>
+              <td class="text-danger">{{this.[1].returns}}</td>
+              <td>
+                {{#if this.[1].total}}
+                  <span class="text-success">{{#divide this.[1].sold this.[1].total}}{{this}}%{{/divide}}</span>
+                {{else}}
+                  <span class="text-muted">N/A</span>
+                {{/if}}
+              </td>
+              <td>
+                <div class="progress-bar-custom">
+                  <div class="progress-fill bg-success" style="width: {{this.[1].percentage}}%;"></div>
+                </div>
+                <small class="text-muted">{{this.[1].percentage}}%</small>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}
+
+<div class="row">
+  <!-- Recent Products -->
+  <div class="col-xl-6 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-clock-history me-2"></i> Recent Products</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-sm">
+          <thead>
+            <tr>
+              <th>Serial</th>
+              <th>Capacity</th>
+              <th>Source</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each recentProducts}}
+            <tr>
+              <td><code>{{serialNumber}}</code></td>
+              <td><span class="badge bg-info text-dark">{{formatCapacity typeCapacity}}</span></td>
+              <td><small class="text-muted">{{#if source}}{{source}}{{else}}N/A{{/if}}</small></td>
+              <td>
+                {{#if soldDate}}
+                  <span class="badge bg-success">Sold</span>
+                {{else}}
+                  <span class="badge bg-warning text-dark">Available</span>
+                {{/if}}
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Warranties -->
+  <div class="col-xl-6 mb-4">
+    <div class="dashboard-card">
+      <h5 class="section-title"><i class="bi bi-shield-check me-2"></i> Recent Warranties</h5>
+      <div class="table-responsive">
+        <table class="table table-dashboard table-sm">
+          <thead>
+            <tr>
+              <th>Serial</th>
+              <th>Status</th>
+              <th>Platform</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each recentWarranties}}
+            <tr>
+              <td><code>{{serialNumber}}</code></td>
+              <td>
+                {{#if warranty.status}}
+                  {{#if (eq warranty.status "active")}}
+                    <span class="badge bg-success">Active</span>
+                  {{else if (eq warranty.status "pending")}}
+                    <span class="badge bg-warning">Pending</span>
+                  {{else if (eq warranty.status "expired")}}
+                    <span class="badge bg-danger">Expired</span>
+                  {{else}}
+                    <span class="badge bg-secondary">{{warranty.status}}</span>
+                  {{/if}}
+                {{/if}}
+              </td>
+              <td><small>{{capitalize platform}}</small></td>
+              <td><small>{{formatDate warranty.registrationDate}}</small></td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#section 'script'}}
+<script>
+// Auto-apply filters when changed
+document.getElementById('dashboardFilters').addEventListener('change', function() {
+  this.submit();
+});
+
+// Add some interactive functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Highlight top performing items
+  const tables = document.querySelectorAll('.table-dashboard tbody tr');
+  tables.forEach(row => {
+    row.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+    });
+    row.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '';
+    });
+  });
+  
+  // Add tooltips to badges
+  const badges = document.querySelectorAll('.badge');
+  badges.forEach(badge => {
+    badge.setAttribute('title', badge.textContent + ' items');
+  });
+});
+</script>
+{{/section}}

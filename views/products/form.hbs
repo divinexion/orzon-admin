@@ -82,7 +82,7 @@
             <select required class="form-select" name="typeCapacity" id="typeCapacity">
               <option value="">Select capacity</option>
               {{#each capacities}}
-                <option value="{{this}}" {{#if (eq ../product.typeCapacity this)}}selected{{/if}}>{{this}} GB</option>
+                <option value="{{this}}" {{#if (eq ../product.typeCapacity this)}}selected{{/if}}>{{formatCapacity this}}</option>
               {{/each}}
             </select>
           </div>
@@ -109,6 +109,13 @@
               {{/each}}
             </select>
           </div>
+          <div class="col-md-6">
+            <label class="form-label">Source (Supplier) <small class="text-muted">(Optional)</small></label>
+            <div class="position-relative">
+              <i class="bi bi-building input-icon"></i>
+              <input type="text" class="form-control input-with-icon" name="source" value="{{product.source}}" placeholder="e.g., XYZ Electronics, ABC Supplier" />
+            </div>
+          </div>
           <div class="col-12">
             <label class="form-label">Description</label>
             <textarea class="form-control" name="description" rows="3" placeholder="Enter product description">{{product.description}}</textarea>
@@ -125,24 +132,24 @@
       </div>
 
       <div class="form-section">
-        <h5 class="section-title"><i class="bi bi-person me-2"></i> Buyer Information</h5>
+        <h5 class="section-title"><i class="bi bi-person me-2"></i> Customer Information</h5>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Buyer Name</label>
+            <label class="form-label">Customer Name</label>
             <div class="position-relative">
               <i class="bi bi-person input-icon"></i>
-              <input type="text" class="form-control input-with-icon" name="buyerName" value="{{product.buyer.name}}" placeholder="Enter buyer name" />
+              <input type="text" class="form-control input-with-icon" name="buyerName" value="{{product.buyer.name}}" placeholder="Enter customer name" />
             </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Buyer Phone</label>
+            <label class="form-label">Customer Phone</label>
             <div class="position-relative">
               <i class="bi bi-telephone input-icon"></i>
               <input type="text" class="form-control input-with-icon" name="buyerPhone" value="{{product.buyer.phone}}" placeholder="Enter phone number" />
             </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Buyer Email</label>
+            <label class="form-label">Customer Email</label>
             <div class="position-relative">
               <i class="bi bi-envelope input-icon"></i>
               <input type="email" class="form-control input-with-icon" name="buyerEmail" value="{{product.buyer.email}}" placeholder="Enter email address" />
@@ -156,7 +163,7 @@
             </div>
           </div>
           <div class="col-12">
-            <label class="form-label">Buyer Address</label>
+            <label class="form-label">Customer Address</label>
             <div class="position-relative">
               <i class="bi bi-geo-alt input-icon"></i>
               <input type="text" class="form-control input-with-icon" name="buyerAddress" value="{{product.buyer.address}}" placeholder="Enter complete address" />
@@ -205,7 +212,7 @@
           {{else}}
           <li>Serial number must be unique</li>
           {{/unless}}
-          <li>Fill buyer information when product is sold</li>
+          <li>Fill customer information when product is sold</li>
           <li>Platform gets filled during warranty registration</li>
           <li>All changes are logged in Excel</li>
         </ul>
@@ -295,8 +302,9 @@ function generateProductName() {
   const productNameField = document.getElementById('productName');
   
   if (serialNumber && capacity && !{{isEdit}}) {
-    // Generate name format: "Storage Disk {capacity}GB - {serialNumber}"
-    const productName = `Storage Disk ${capacity}GB - ${serialNumber}`;
+    // Generate name format: "Storage Disk {capacity}TB/GB - {serialNumber}"
+    const capacityDisplay = capacity >= 1024 ? `${capacity/1024}TB` : `${capacity}GB`;
+    const productName = `Storage Disk ${capacityDisplay} - ${serialNumber}`;
     productNameField.value = productName;
   } else if (!serialNumber || !capacity) {
     // Clear the name if either field is empty (for new products only)
@@ -405,7 +413,7 @@ if (productForm) {
       isValid = false;
     }
     
-    // Validate Buyer Email if provided
+    // Validate Customer Email if provided
     const buyerEmail = document.querySelector('input[name="buyerEmail"]');
     if (buyerEmail.value.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -416,7 +424,7 @@ if (productForm) {
       }
     }
     
-    // Validate Buyer Phone if provided
+    // Validate Customer Phone if provided
     const buyerPhone = document.querySelector('input[name="buyerPhone"]');
     if (buyerPhone.value.trim()) {
       const phoneRegex = /^[0-9\s\-\+\(\)]+$/;
@@ -442,12 +450,12 @@ if (productForm) {
       }
     }
     
-    // Validate buyer details if sold date is provided
+    // Validate customer details if sold date is provided
     if (soldDate.value) {
       const buyerName = document.querySelector('input[name="buyerName"]');
       if (!buyerName.value.trim()) {
-        showError(buyerName, 'Buyer name is required when product is sold');
-        errors.push('Buyer name is required for sold products');
+        showError(buyerName, 'Customer name is required when product is sold');
+        errors.push('Customer name is required for sold products');
         isValid = false;
       }
     }

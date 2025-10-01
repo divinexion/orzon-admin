@@ -54,6 +54,12 @@ const ProductSchema = new mongoose.Schema(
       index: true,
       lowercase: true
     },
+    source: { 
+      type: String, 
+      required: false, // Optional - tracks where products were bought from (supplier)
+      index: true,
+      trim: true
+    },
     description: { type: String },
     addDate: { type: Date, default: Date.now },
     buyer: { type: BuyerSchema, default: {} },

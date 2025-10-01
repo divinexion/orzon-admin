@@ -83,7 +83,9 @@ app.use('/', require('./routes/index'));
 app.use('/api', require('./routes/api'));
 app.use('/warranty', require('./routes/warranty')); // Public warranty routes with rate limiting
 app.use(checkAuth);
+app.use('/dashboard', require('./routes/dashboard'));
 app.use('/products', require('./routes/products'));
+app.use('/returns', require('./routes/returns'));
 app.use('/queries', require('./routes/queries'));
 app.use('/stats', require('./routes/stats'));
 

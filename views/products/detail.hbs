@@ -123,6 +123,18 @@
             </span>
           </div>
         </div>
+        <div class="col-md-6">
+          <div class="detail-row">
+            <span class="detail-label">Source:</span><br>
+            <span class="detail-value">
+              {{#if product.source}}
+                <span class="badge bg-success fs-6">{{product.source}}</span>
+              {{else}}
+                <span class="badge bg-light text-dark fs-6">Not Set</span>
+              {{/if}}
+            </span>
+          </div>
+        </div>
         <div class="col-12">
           <div class="detail-row">
             <span class="detail-label">Description:</span><br>

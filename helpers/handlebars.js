@@ -48,6 +48,42 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function formatCapacity(capacityGB) {
+  if (!capacityGB) return '';
+  const capacity = parseInt(capacityGB);
+  if (capacity >= 1024) {
+    const tb = capacity / 1024;
+    return tb === Math.floor(tb) ? `${tb}TB` : `${tb.toFixed(1)}TB`;
+  }
+  return `${capacity}GB`;
+}
+
+function json(context) {
+  return JSON.stringify(context);
+}
+
+function divide(a, b) {
+  if (!a || !b || b === 0) return 0;
+  return a / b;
+}
+
+function multiply(a, b) {
+  if (!a || !b) return 0;
+  return Math.round(a * b);
+}
+
+function gt(a, b) {
+  return a > b;
+}
+
+function sum(array, property) {
+  if (!Array.isArray(array)) return 0;
+  return array.reduce((total, item) => {
+    const value = property ? item[property] : item;
+    return total + (parseFloat(value) || 0);
+  }, 0);
+}
+
 module.exports = {
   handlebars: allowInsecurePrototypeAccess(Handlebars),
   helpers: {
@@ -57,6 +93,13 @@ module.exports = {
     formatDate,
     formatDateTime,
     capitalize,
+    formatCapacity,
+    json,
+    divide,
+    multiply,
+    gt,
+    sum,
+    lookup: (obj, key) => obj && obj[key]
   },
   defaultLayout: 'main',
   layoutsDir: 'views/layout',
