@@ -112,7 +112,7 @@
           <div class="d-flex">
             <div class="toast-body">
               <i class="bi bi-exclamation-circle me-2"></i>
-              {{this}}
+              {{#if this.message}}{{this.message}}{{else}}{{this}}{{/if}}
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>
@@ -120,7 +120,7 @@
       {{/each}}
     </div>
   {{/if}}
-  
+
   {{#if flash.success}}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
       {{#each flash.success}}
@@ -128,7 +128,7 @@
           <div class="d-flex">
             <div class="toast-body">
               <i class="bi bi-check-circle me-2"></i>
-              {{this}}
+              {{#if this.message}}{{this.message}}{{else}}{{this}}{{/if}}
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>

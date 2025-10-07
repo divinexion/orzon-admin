@@ -201,6 +201,7 @@ router.post('/', async (req, res, next) => {
         paymentMethod: b.buyerPaymentMethod,
       },
       soldDate: b.soldDate || undefined,
+      dispatchDate: b.dispatchDate || undefined,
     });
 
 
@@ -334,6 +335,7 @@ router.post('/:id', async (req, res, next) => {
         paymentMethod: b.buyerPaymentMethod,
       },
       soldDate: b.soldDate || undefined,
+      dispatchDate: b.dispatchDate || undefined,
     };
     const product = await Product.findByIdAndUpdate(id, update, { new: true });
     if (!product) {

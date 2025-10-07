@@ -64,6 +64,7 @@ const ProductSchema = new mongoose.Schema(
     addDate: { type: Date, default: Date.now },
     buyer: { type: BuyerSchema, default: {} },
     soldDate: { type: Date },
+    dispatchDate: { type: Date },
     warranty: { type: WarrantySchema, default: null },
     warrantyRegistered: { type: Boolean, default: false, index: true },
   },

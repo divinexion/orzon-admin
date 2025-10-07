@@ -118,7 +118,7 @@
               {{#if product.platform}}
                 <span class="badge bg-primary fs-6">{{capitalize product.platform}}</span>
               {{else}}
-                <span class="badge bg-secondary fs-6">Unknown</span>
+                <span class="text-muted">-</span>
               {{/if}}
             </span>
           </div>
@@ -151,6 +151,12 @@
           <div class="detail-row">
             <span class="detail-label">Sold Date:</span><br>
             <span class="detail-value">{{#if product.soldDate}}{{formatDate product.soldDate}}{{else}}<em>Not sold</em>{{/if}}</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="detail-row">
+            <span class="detail-label">Dispatch Date:</span><br>
+            <span class="detail-value">{{#if product.dispatchDate}}{{formatDate product.dispatchDate}}{{else}}<em>Not dispatched</em>{{/if}}</span>
           </div>
         </div>
       </div>
