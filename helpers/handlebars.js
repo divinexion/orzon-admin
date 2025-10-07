@@ -90,6 +90,11 @@ module.exports = {
     section,
     pagination,
     eq: (a, b) => a == b,
+    or: (...args) => {
+      // Remove the last argument which is the Handlebars options object
+      args.pop();
+      return args.some(arg => !!arg);
+    },
     formatDate,
     formatDateTime,
     capitalize,
